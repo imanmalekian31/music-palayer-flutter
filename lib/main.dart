@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flute_music_player/flute_music_player.dart';
 
@@ -17,11 +19,18 @@ class _MyAppState extends State<MyApp> {
   }
 
   void initPlayer() async {
-    var songs = await MusicFinder.allSongs();
+    var songs = await MusicFinder.allSongs() as List<Song>;
     songs = List.from(songs);
     setState(() {
       _songs = songs;
     });
+  }
+
+  int getSongsLength() {
+    if (_songs == null) {
+      return 0;
+    }
+    return _songs.length;
   }
 
   @override
@@ -30,11 +39,13 @@ class _MyAppState extends State<MyApp> {
       return new Scaffold(
         appBar: AppBar(title: Text("Music App")),
         body: ListView.builder(
-            itemCount: 30,
+            itemCount: getSongsLength(),
             itemBuilder: (context, int index) {
               return ListTile(
                 leading: CircleAvatar(
-                  child: Text(_songs[index].title[0]),
+                  child: _songs[index].albumArt != null
+                      ? Image.file(File(_songs[index].albumArt))
+                      : null,
                 ),
                 title: Text(_songs[index].title),
               );
