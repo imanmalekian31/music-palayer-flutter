@@ -12,6 +12,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<Song> _songs;
+  bool _grid = true;
+
   @override
   void initState() {
     super.initState();
@@ -33,28 +35,86 @@ class _MyAppState extends State<MyApp> {
     return _songs.length;
   }
 
+  void changeView() {
+    setState(() {
+      _grid ? _grid = false : _grid = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget home() {
-      return new Scaffold(
-        appBar: AppBar(title: Text("Music App")),
-        body: ListView.builder(
-            itemCount: getSongsLength(),
-            itemBuilder: (context, int index) {
-              return ListTile(
-                leading: CircleAvatar(
-                  child: _songs[index].albumArt != null
-                      ? Image.file(File(_songs[index].albumArt))
-                      : null,
+    Widget viewList() {
+      return ListView.builder(
+          itemCount: getSongsLength(),
+          itemBuilder: (context, int index) {
+            return ListTile(
+              leading: CircleAvatar(
+                child: _songs[index].albumArt != null
+                    ? Image.file(
+                        File(_songs[index].albumArt),
+                        fit: BoxFit.fill,
+                      )
+                    : Image.asset('assets/images/placeholder.png'),
+              ),
+              title: Text(_songs[index].title),
+            );
+          });
+    }
+
+    Widget viewGrid() {
+      return GridView.builder(
+        itemCount: getSongsLength(),
+        gridDelegate:
+            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+        itemBuilder: (context, int index) {
+          return Card(
+            semanticContainer: true,
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            elevation: 5,
+            margin: EdgeInsets.all(10),
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: _songs[index].albumArt != null
+                      ? FileImage(File(_songs[index].albumArt))
+                      : ExactAssetImage('assets/images/placeholder.png'),
+                  fit: BoxFit.fitWidth,
+                  alignment: Alignment.topCenter,
                 ),
-                title: Text(_songs[index].title),
-              );
-            }),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    Widget grid() {
+      return MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: Text('Music list'),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(
+                  _grid ? Icons.view_module : Icons.view_list,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  changeView();
+                },
+              )
+            ],
+          ),
+          body: _grid ? viewList() : viewGrid(),
+        ),
       );
     }
 
     return MaterialApp(
-      home: home(),
+      home: grid(),
     );
   }
 }
